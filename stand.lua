@@ -1,10 +1,7 @@
 if game.PlaceId == 2281639237 then
     if not game:IsLoaded() then
         game.Loaded:Wait()
-    end
-else
-    return nil
-end    
+end
 
     local Quests = {
         Thug = "Thug Quest", 
