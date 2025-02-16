@@ -1,11 +1,10 @@
-if game:PlaceId == 2281639237 then
+if game.PlaceId == 2281639237 then
     if not game:IsLoaded() then
         game.Loaded:Wait()
     end
 else
-    game:Kick("You are not in the right game.")
-end
-
+    return nil
+end    
 
 local Quests = {
     Thug = "Thug Quest", 
@@ -156,32 +155,37 @@ local function TeleportToNpc()
 end
 
 local function NewLevel(Level)
-    local LevelNum = tonumber(Level)
-    if LevelNum >= 1 and LevelNum < 10 then
-        getgenv().CurrentMob = "Thug"
-    elseif LevelNum >= 10 and LevelNum < 20 then
-        game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.ThugQuest.Remotes.Cancel:FireServer()
-        getgenv().CurrentMob = "Brute"
-    elseif LevelNum >= 20 and LevelNum < 30 then
-        game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.BruteQuest.Remotes.Cancel:FireServer()
-        getgenv().CurrentMob = "🦍"
-    elseif LevelNum >= 30 and LevelNum < 45 then
-        game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.GorillaQuest.Remotes.Cancel:FireServer()
-        getgenv().CurrentMob = "Werewolf"
-    elseif LevelNum >= 45 and LevelNum < 60 then
-        game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.WerewolfQuest.Remotes.Cancel:FireServer()
-        getgenv().CurrentMob = "Zombie"
-    elseif LevelNum >= 60 and LevelNum < 80 then
-        game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.ZombieQuest.Remotes.Cancel:FireServer()
-        getgenv().CurrentMob = "Vampire"
-    elseif LevelNum >= 80 and LevelNum < 100 then
-        if LevelNum == 100 then
-            getgenv().CurrentMob = "HamonGolem"
-            NewQuest(getgenv().CurrentMob)
-        else
-            game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.VampireQuest.Remotes.Cancel:FireServer()
-            getgenv().CurrentMob = "HamonGolem"
-			end
+    local success, error = pcall(function()
+        local LevelNum = tonumber(Level)
+        if LevelNum >= 1 and LevelNum < 10 then
+            getgenv().CurrentMob = "Thug"
+        elseif LevelNum >= 10 and LevelNum < 20 then
+            game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.ThugQuest.Remotes.Cancel:FireServer()
+            getgenv().CurrentMob = "Brute"
+        elseif LevelNum >= 20 and LevelNum < 30 then
+            game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.BruteQuest.Remotes.Cancel:FireServer()
+            getgenv().CurrentMob = "🦍"
+        elseif LevelNum >= 30 and LevelNum < 45 then
+            game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.GorillaQuest.Remotes.Cancel:FireServer()
+            getgenv().CurrentMob = "Werewolf"
+        elseif LevelNum >= 45 and LevelNum < 60 then
+            game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.WerewolfQuest.Remotes.Cancel:FireServer()
+            getgenv().CurrentMob = "Zombie"
+        elseif LevelNum >= 60 and LevelNum < 80 then
+            game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.ZombieQuest.Remotes.Cancel:FireServer()
+            getgenv().CurrentMob = "Vampire"
+        elseif LevelNum >= 80 and LevelNum < 100 then
+            if LevelNum == 100 then
+                getgenv().CurrentMob = "HamonGolem"
+                NewQuest(getgenv().CurrentMob)
+            else
+                game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.VampireQuest.Remotes.Cancel:FireServer()
+                getgenv().CurrentMob = "HamonGolem"
+            end
+        end
+    end)
+    if not success then
+        return nil
     end
 end
 
@@ -256,7 +260,8 @@ LevelText:GetPropertyChangedSignal("Text"):Connect(function()
         wait(5)
         game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
         wait(2)
-        RejoinServer()       
+        RejoinServer()
+        
     end
     NewLevel(Level)
     AutoAssignStats()
@@ -268,4 +273,3 @@ NewQuest(getgenv().CurrentMob)
 wait(2)
 TeleportToNpc()
 EnsureStandSummoned()
-
