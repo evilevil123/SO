@@ -5,9 +5,7 @@ if game.PlaceId == 2281639237 then
 else
     return nil
 end
-    getgenv().AttackMethod = "All" --[[Type: 'Heavy', 'Punch', 'All']]
-    getgenv().PrestigeActive = true
-    getgenv().Autofarm = true
+
 
     local Quests = {
         Thug = "Thug Quest", 
