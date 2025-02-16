@@ -4,8 +4,7 @@ if game.PlaceId == 2281639237 then
     end
 else
     return nil
-end
-
+end    
 
     local Quests = {
         Thug = "Thug Quest", 
@@ -197,31 +196,11 @@ end
         workspace.Gravity = 196.2 -- Reset gravity to default
     end
 
-    function RefreshScript()
-        StopAllActions()
-        Reinitialize()
-        EnsureStandSummoned()
-    end
-
-    function Reinitialize()
-        getgenv().PlayerLevel = 0
-        getgenv().CurrentMob = "Thug"
-        getgenv().EnemyHitCount = 0
-        EnemiesHit = {}
-        EnemiesKilled = {}
-        KillCounters = {
-            Thug = 0,
-            Brute = 0,
-            ["🦍"] = 0,
-            Werewolf = 0,
-            Zombie = 0,
-            Vampire = 0,
-            HamonGolem = 0
-        }
-        NewLevel(1)
-        NewQuest(getgenv().CurrentMob)
-        wait(2)
-        TeleportToNpc()
+    function RejoinServer()
+        local TeleportService = game:GetService("TeleportService")
+        local PlaceId = game.PlaceId
+        local JobId = game.JobId
+        TeleportService:TeleportToPlaceInstance(PlaceId, JobId, game.Players.LocalPlayer)
     end
 
     local CoreGUIPath = game.Players.LocalPlayer.PlayerGui.CoreGUI
@@ -234,7 +213,8 @@ end
             StopAllActions()
             game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
             wait(2)
-            RefreshScript()
+            RejoinServer()
+            return
         end
         NewLevel(Level)
         AutoAssignStats()
