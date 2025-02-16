@@ -1,6 +1,11 @@
-getgenv().AttackMethod = "All" --[[Type: 'Heavy', 'Punch', 'All']]
-getgenv().PrestigeActive = false
-getgenv().Autofarm = true -- Make sure you start at level 1
+if game:PlaceId == 2281639237 then
+    if not game:IsLoaded() then
+        game.Loaded:Wait()
+    end
+else
+    game:Kick("You are not in the right game.")
+end
+
 
 local Quests = {
     Thug = "Thug Quest", 
