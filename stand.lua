@@ -174,8 +174,11 @@ local function NewLevel(Level)
         game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.ZombieQuest.Remotes.Cancel:FireServer()
         getgenv().CurrentMob = "Vampire"
     elseif LevelNum >= 80 and LevelNum < 100 then
-        game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.VampireQuest.Remotes.Cancel:FireServer()
-        getgenv().CurrentMob = "HamonGolem"
+        if LevelNum == 100 then
+            getgenv().CurrentMob = "HamonGolem"
+        else
+            game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.VampireQuest.Remotes.Cancel:FireServer()
+            getgenv().CurrentMob = "HamonGolem"
     end
 end
 
