@@ -6,6 +6,123 @@ else
     return nil
 end    
 
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Autofarm Script",
+    LoadingTitle = "Loading Autofarm Script",
+    LoadingSubtitle = "by YourName",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = nil, -- Create a custom folder for your hub/game
+        FileName = "AutofarmScript"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "", -- The Discord invite code, do not include discord.gg/
+        RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+    },
+    KeySystem = false, -- Set this to true to use our key system
+    KeySettings = {
+        Title = "Autofarm Script",
+        Subtitle = "Key System",
+        Note = "Join the discord (discord.gg/...)",
+        FileName = "AutofarmScriptKey",
+        SaveKey = true,
+        GrabKeyFromSite = false, -- If this is true, set Key to the site you want to grab the key from
+        Key = "ABCDEF"
+    }
+})
+
+local MainTab = Window:CreateTab("Main", 4483362458) -- Title, Image
+local ItemTab = Window:CreateTab("Items", 4483362458) -- Title, Image
+local SettingsTab = Window:CreateTab("Settings", 4483362458) -- Title, Image
+
+local tweenSpeed = 1.75
+local autofarmEnabled = false
+
+local Slider = MainTab:CreateSlider({
+    Name = "Tween Speed",
+    Range = {0.5, 5},
+    Increment = 0.1,
+    Suffix = "seconds",
+    CurrentValue = tweenSpeed,
+    Flag = "TweenSpeedSlider",
+    Callback = function(Value)
+        tweenSpeed = Value
+    end
+})
+
+local Toggle = MainTab:CreateToggle({
+    Name = "Enable Autofarm",
+    CurrentValue = autofarmEnabled,
+    Flag = "AutofarmToggle",
+    Callback = function(Value)
+        autofarmEnabled = Value
+        if autofarmEnabled then
+            InitializeScript()
+        else
+
+            DeinitializeScript()
+        end
+    end
+})
+
+local ButtonPrestige = MainTab:CreateButton({
+    Name = "Prestige",
+    Callback = function()
+        game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
+        wait(2)
+        RejoinServer()
+    end
+})
+
+local ButtonLowerQuest = MainTab:CreateButton({
+    Name = "Grab Lower Level Quest",
+    Callback = function()
+        GrabLowerLevelQuest()
+    end
+})
+
+local items = {}
+local itemSet = {}
+
+for _, item in pairs(workspace.Purchasable:GetChildren()) do
+    if not itemSet[item.Name] then
+        table.insert(items, item.Name)
+        itemSet[item.Name] = true
+    end
+end
+
+local function purchaseItem(itemName)
+    local item = workspace.Purchasable:FindFirstChild(itemName)
+    if item then
+        local clickDetector = item.ClickDetector
+        if clickDetector then
+            local initialCount = #game.Players.LocalPlayer.Backpack:GetChildren()
+            local newCount
+            repeat
+                fireclickdetector(clickDetector)
+                wait(0.1) -- Adjust the wait time as needed
+                newCount = #game.Players.LocalPlayer.Backpack:GetChildren()
+            until newCount == initialCount
+            print("Purchased max of: " .. tostring(itemName))
+        else
+            print("No ClickDetector found for: " .. tostring(itemName))
+        end
+    else
+        print("Item not found in workspace.Purchasable: " .. tostring(itemName))
+    end
+end
+
+for _, itemName in ipairs(items) do
+    ItemTab:CreateButton({
+        Name = "Purchase " .. itemName,
+        Callback = function()
+            purchaseItem(itemName)
+        end
+    })
+end
 local Quests = {
     Thug = "Thug Quest", 
     Brute = "Brute Quest", 
@@ -57,7 +174,7 @@ local function NewQuest(Enemy)
     if QuestPerson then
         local ProximityPrompt = QuestPerson:FindFirstChild("ProximityPrompt")
         pcall(function()
-            local TPTweenInfo = TweenInfo.new(1.75, Enum.EasingStyle.Linear)
+            local TPTweenInfo = TweenInfo.new(tweenSpeed, Enum.EasingStyle.Linear)
             local tween = game:GetService("TweenService"):Create(
                 game.Players.LocalPlayer.Character.HumanoidRootPart,
                 TPTweenInfo,
@@ -154,6 +271,10 @@ local function TeleportToNpc()
     end
 end
 
+
+
+
+
 local function NewLevel(Level)
     local success, error = pcall(function()
         local LevelNum = tonumber(Level)
@@ -174,13 +295,11 @@ local function NewLevel(Level)
         elseif LevelNum >= 60 and LevelNum < 80 then
             game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.ZombieQuest.Remotes.Cancel:FireServer()
             getgenv().CurrentMob = "Vampire"
-        elseif LevelNum >= 80 and LevelNum < 100 then
-            if LevelNum == 100 then
-                getgenv().CurrentMob = "HamonGolem"
-                NewQuest(getgenv().CurrentMob)
-            else
-                game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.VampireQuest.Remotes.Cancel:FireServer()
-                getgenv().CurrentMob = "HamonGolem"
+        elseif LevelNum >= 80 and LevelNum <= 100 then
+            game:GetService("Players").LocalPlayer.PlayerGui.Quest.Quest.VampireQuest.Remotes.Cancel:FireServer()
+            getgenv().CurrentMob = "HamonGolem"
+            if NewQuest ~= "Golem Quest" then
+                NewQuest("HamonGolem")
             end
         end
     end)
@@ -205,6 +324,7 @@ function StopAllActions()
     debounce = false
     workspace.Gravity = 196.2 -- Reset gravity to default
     getgenv().CurrentMob = nil -- Clear the current mob
+
 end
 
 function RefreshScript()
@@ -249,11 +369,44 @@ function RejoinServer()
     end
 end
 
-local CoreGUIPath = game.Players.LocalPlayer.PlayerGui.CoreGUI
-local LevelText = CoreGUIPath.Frame.EXPBAR.TextLabel
+function GrabLowerLevelQuest()
+    local Level = tonumber(string.match(getgenv().LevelText.Text, "%d+"))
+    if Level >= 1 and Level < 10 then
+        NewQuest("Thug")
+    elseif Level >= 10 and Level < 20 then
+        NewQuest("Thug")
+    elseif Level >= 20 and Level < 30 then
+        NewQuest("Brute")
+    elseif Level >= 30 and Level < 45 then
+        NewQuest("🦍")
+    elseif Level >= 45 and Level < 60 then
+        NewQuest("Werewolf")
+    elseif Level >= 60 and Level < 80 then
+        NewQuest("Zombie")
+    elseif Level >= 80 and Level <= 100 then
+        NewQuest("Vampire")
+    end
+end
 
-LevelText:GetPropertyChangedSignal("Text"):Connect(function()
-    local Level = string.match(LevelText.Text, "%d+")
+function InitializeScript()
+    GrabLowerLevelQuest()
+	wait(tweenSpeed + 0.5)
+    NewLevel(string.match(getgenv().LevelText.Text, "%d+"))
+    NewQuest(getgenv().CurrentMob)
+    wait(2)
+    TeleportToNpc()
+    EnsureStandSummoned()
+end
+
+function DeinitializeScript()
+    StopAllActions()
+end
+
+local CoreGUIPath = game.Players.LocalPlayer.PlayerGui.CoreGUI
+getgenv().LevelText = CoreGUIPath.Frame.EXPBAR.TextLabel
+
+getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
+    local Level = string.match(getgenv().LevelText.Text, "%d+")
 
     if tonumber(Level) >= 100 and getgenv().PrestigeActive then
         StopAllActions()
@@ -267,9 +420,3 @@ LevelText:GetPropertyChangedSignal("Text"):Connect(function()
     AutoAssignStats()
     EnsureStandSummoned()
 end)
-
-NewLevel(string.match(LevelText.Text, "%d+"))
-NewQuest(getgenv().CurrentMob)
-wait(2)
-TeleportToNpc()
-EnsureStandSummoned()
