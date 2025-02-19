@@ -11,7 +11,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
     Name = "Autofarm Script",
     LoadingTitle = "Loading Autofarm Script",
-    LoadingSubtitle = "by vinnydinny",
+    LoadingSubtitle = "by YourName",
     ConfigurationSaving = {
         Enabled = true,
         FolderName = nil, -- Create a custom folder for your hub/game
@@ -36,6 +36,7 @@ local Window = Rayfield:CreateWindow({
 
 local MainTab = Window:CreateTab("Main", 4483362458) -- Title, Image
 local ItemTab = Window:CreateTab("Items", 4483362458) -- Title, Image
+local MiningTab = Window:CreateTab("Mining", 4483362458) -- Title, Image
 local SettingsTab = Window:CreateTab("Settings", 4483362458) -- Title, Image
 
 local tweenSpeed = 1.75
@@ -115,6 +116,8 @@ local function purchaseItem(itemName)
     end
 end
 
+
+
 for _, itemName in ipairs(items) do
     ItemTab:CreateButton({
         Name = "Purchase " .. itemName,
@@ -123,6 +126,103 @@ for _, itemName in ipairs(items) do
         end
     })
 end
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+
+local itemsFolder = workspace:FindFirstChild("Items")
+local localPlayer = Players.LocalPlayer
+local miningEnabled = false
+
+-- Function to fire a ProximityPrompt
+local function fireproximityprompt2(Obj, Amount, Skip)
+    if Obj.ClassName == "ProximityPrompt" then 
+        Amount = Amount or 1
+        local PromptTime = Obj.HoldDuration
+        if Skip then 
+            Obj.HoldDuration = 0
+        end
+        for i = 1, Amount do 
+            Obj:InputHoldBegin()
+            if not Skip then 
+                wait(Obj.HoldDuration)
+            end
+            Obj:InputHoldEnd()
+        end
+        Obj.HoldDuration = PromptTime
+    else 
+        error("userdata<ProximityPrompt> expected")
+    end
+end
+
+-- Function to move the player to the MiningNode
+local function movePlayer(targetCFrame, callback)
+    local character = localPlayer and localPlayer.Character
+    if character then
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+        if humanoidRootPart then
+            -- Tween player to the target position
+            local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+            local tween = TweenService:Create(humanoidRootPart, tweenInfo, {CFrame = targetCFrame})
+
+            tween:Play()
+            tween.Completed:Connect(function()
+                if callback then callback() end -- Fire ProximityPrompt after reaching
+            end)
+        end
+    end
+end
+
+-- Function to recursively search for "MiningNode" and interact with its ProximityPrompt
+local function findMiningNodes(parent)
+    for _, child in ipairs(parent:GetChildren()) do
+        if child:IsA("Model") and child.Name == "MiningNode" then
+            local primaryPart = child.PrimaryPart -- Ensure it has a PrimaryPart
+            if primaryPart then
+                -- Find the ProximityPrompt inside the MiningNode
+                local prompt = child:FindFirstChildWhichIsA("ProximityPrompt", true)
+                if prompt then
+                    -- Move the player to the MiningNode’s position
+                    movePlayer(primaryPart.CFrame, function()
+                        fireproximityprompt2(prompt, 1, true) -- Fire the ProximityPrompt
+                    end)
+                else
+                    warn("No ProximityPrompt found in: " .. child:GetFullName())
+                end
+            else
+                warn("MiningNode missing PrimaryPart: " .. child:GetFullName())
+            end
+        elseif child:IsA("Model") or child:IsA("Folder") then
+            -- Recursively check children
+            findMiningNodes(child)
+        end
+    end
+end
+
+-- Function to repeatedly check for MiningNodes every 2 seconds
+local function startChecking()
+    while miningEnabled do
+        if itemsFolder then
+            findMiningNodes(itemsFolder)
+        else
+            warn("workspace.Items folder not found!")
+        end
+        wait(2) -- Check every 2 seconds
+    end
+end
+
+-- Toggle to start/stop mining
+MiningTab:CreateToggle({
+    Name = "Enable Mining",
+    CurrentValue = miningEnabled,
+    Flag = "MiningToggle",
+    Callback = function(Value)
+        miningEnabled = Value
+        if miningEnabled then
+            task.spawn(startChecking)
+        end
+    end
+})
+
 local Quests = {
     Thug = "Thug Quest", 
     Brute = "Brute Quest", 
