@@ -69,12 +69,12 @@ local Toggle = MainTab:CreateToggle({
     end
 })
 
-local ButtonPrestige = MainTab:CreateButton({
-    Name = "Prestige",
-    Callback = function()
-        game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
-        wait(2)
-        RejoinServer()
+local TogglePrestige = MainTab:CreateToggle({
+    Name = "Auto Prestige",
+    CurrentValue = false,
+    Flag = "PrestigeActive",
+    Callback = function(Value)
+        getgenv().PrestigeActive = Value
     end
 })
 
