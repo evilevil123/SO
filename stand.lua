@@ -223,6 +223,36 @@ MiningTab:CreateToggle({
     end
 })
 
+SettingsTab:CreateButton({
+    Name = "Refresh Script",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/evilevil123/SO/refs/heads/main/stand.lua"))()
+    end
+})
+
+SettingsTab:CreateButton({
+    Name = "Rejoin Server",
+    Callback = function()
+        RejoinServer()
+    end
+})
+
+SettingsTab:CreateButton({
+    Name = "Save into autoexec",
+    Callback = function()
+        local Autoexec = game:GetService("HttpService"):GetAsync("https://raw.githubusercontent.com/evilevil123/SO/refs/heads/main/stand.lua")
+        writefile("autoexec.lua", Autoexec)
+    end
+})
+
+-- Anti-AFK
+local vu = game:GetService("VirtualUser")
+game:GetService("Players").LocalPlayer.Idled:Connect(function()
+    vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    wait(1)
+    vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+end)
+
 local Quests = {
     Thug = "Thug Quest", 
     Brute = "Brute Quest", 
