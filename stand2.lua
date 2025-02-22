@@ -454,14 +454,13 @@ local function NewLevel(Level)
     end
 end
 function autofarmStopped()
-    getgenv().CurrentMob = nil
-    getgenv().EnemyHitCount = 0
-    EnemiesHit = {}
-    EnemiesKilled = {}
     if AutoLoop then
         AutoLoop:Disconnect()
+        AutoLoop = nil
     end
-    workspace.Gravity = 196.2
+    debounce = false
+    workspace.Gravity = 196.2 -- Reset gravity to default
+    getgenv().CurrentMob = nil -- Clear the current mob
 end
 
 
