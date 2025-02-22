@@ -189,13 +189,7 @@ local function NewLevel(Level)
         getgenv().CurrentMob = "Vampire"
     elseif LevelNum >= 80 and LevelNum <= 100 then
         getgenv().CurrentMob = "Golem"
-    	if LevelNum >= 100 and getgenv().PrestigeActive == true then
-        	getgenv().Autofarm = false
-			wait(2)
-			game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
-			wait(4)
-			getgenv().Autofarm = true
-        end
+        
     end
 end
 
@@ -207,6 +201,7 @@ if getgenv().Autofarm then
         local Level = string.match(LevelText.Text, "%d+")
     
         if tonumber(Level) >= 100 and getgenv().PrestigeActive == true then
+	    getgenv().Autofarm = false
             game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
 	    loadstring(game:HttpGet('https://raw.githubusercontent.com/evilevil123/SO/refs/heads/main/stand2.lua'))()	
         end
