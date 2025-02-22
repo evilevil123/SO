@@ -467,8 +467,6 @@ end
 
 
 function autofarmStarted()
-    
-    AutoAssignStats()
     GolemGorilla()
     NewLevel(string.match(getgenv().LevelText.Text, "%d+"))
     NewQuest(getgenv().CurrentMob)
