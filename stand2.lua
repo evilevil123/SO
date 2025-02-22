@@ -464,7 +464,7 @@ getgenv().LevelText = CoreGUIPath.Frame.EXPBAR.TextLabel
 getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
     local Level = string.match(getgenv().LevelText.Text, "%d+")
 
-    if tonumber(Level) >= 100 and getgenv().PrestigeActive then
+    if tonumber(Level) >= 100 and getgenv().PrestigeActive == true then
         autofarmStopped()
         wait(5)
         game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
