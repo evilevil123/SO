@@ -66,19 +66,16 @@ for _, item in pairs(workspace.Purchasable:GetChildren()) do
     end
 end
 
-local function purchaseItem(itemName)
+local function purchaseItem(itemName, itemAmount)
     local item = workspace.Purchasable:FindFirstChild(itemName)
     if item then
         local clickDetector = item.ClickDetector
         if clickDetector then
-            local initialCount = #game.Players.LocalPlayer.Backpack:GetChildren()
-            local newCount
-            repeat
+            for i = 1, itemAmount do
                 fireclickdetector(clickDetector)
-                wait(0.1) -- Adjust the wait time as needed
-                newCount = #game.Players.LocalPlayer.Backpack:GetChildren()
-            until newCount == initialCount
-            print("Purchased max of: " .. tostring(itemName))
+                wait(0.01)-- Adjust the wait time as needed
+            end
+            print("Purchased " .. itemAmount .. " of: " .. tostring(itemName))
         else
             print("No ClickDetector found for: " .. tostring(itemName))
         end
@@ -87,13 +84,24 @@ local function purchaseItem(itemName)
     end
 end
 
+local itemAmount = 1
 
+local Input = ItemTab:CreateInput({
+    Name = "Amount",
+    CurrentValue = tostring(itemAmount),
+    PlaceholderText = "Enter amount",
+    RemoveTextAfterFocusLost = false,
+    Flag = "ItemAmount",
+    Callback = function(Text)
+        itemAmount = tonumber(Text) or itemAmount
+    end
+})
 
 for _, itemName in ipairs(items) do
     ItemTab:CreateButton({
         Name = "Purchase " .. itemName,
         Callback = function()
-            purchaseItem(itemName)
+            purchaseItem(itemName, itemAmount)
         end
     })
 end
