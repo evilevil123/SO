@@ -112,26 +112,6 @@ local itemsFolder = workspace:FindFirstChild("Items")
 local localPlayer = Players.LocalPlayer
 local miningEnabled = false
 
--- Function to fire a ProximityPrompt
-local function fireproximityprompt2(Obj, Amount, Skip)
-    if Obj.ClassName == "ProximityPrompt" then 
-        Amount = Amount or 1
-        local PromptTime = Obj.HoldDuration
-        if Skip then 
-            Obj.HoldDuration = 0
-        end
-        for i = 1, Amount do 
-            Obj:InputHoldBegin()
-            if not Skip then 
-                wait(Obj.HoldDuration)
-            end
-            Obj:InputHoldEnd()
-        end
-        Obj.HoldDuration = PromptTime
-    else 
-        error("userdata<ProximityPrompt> expected")
-    end
-end
 
 -- Function to enable/disable noclip
 local function setNoclip(enabled)
@@ -179,7 +159,7 @@ local function findMiningNodes(parent)
                 if prompt then
                     -- Move the player to the MiningNode’s position
                     movePlayer(primaryPart.CFrame, function()
-                        fireproximityprompt2(prompt, 1, true) -- Fire the ProximityPrompt
+                        fireproximityprompt(prompt, 1, true) -- Fire the ProximityPrompt
                     end)
                 else
                     warn("No ProximityPrompt found in: " .. child:GetFullName())
