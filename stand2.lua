@@ -1,6 +1,243 @@
-getgenv().PrestigeActive = true
-getgenv().Autofarm = true
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
+local Window = Rayfield:CreateWindow({
+    Name = "Autofarm Script",
+    LoadingTitle = "Loading Autofarm Script",
+    LoadingSubtitle = "by vinnydinny",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = nil, -- Create a custom folder for your hub/game
+        FileName = "AutofarmScript"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "", -- The Discord invite code, do not include discord.gg/
+        RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+    },
+    KeySystem = false, -- Set this to true to use our key system
+    KeySettings = {
+        Title = "Autofarm Script",
+        Subtitle = "Key System",
+        Note = "Join the discord (discord.gg/...)",
+        FileName = "AutofarmScriptKey",
+        SaveKey = true,
+        GrabKeyFromSite = false, -- If this is true, set Key to the site you want to grab the key from
+        Key = "ABCDEF"
+    }
+})
+
+local MainTab = Window:CreateTab("Main", 4483362458) -- Title, Image
+local ItemTab = Window:CreateTab("Items", 4483362458) -- Title, Image
+local MiningTab = Window:CreateTab("Mining", 4483362458) -- Title, Image
+local SettingsTab = Window:CreateTab("Settings", 4483362458) -- Title, Image
+
+
+local AutoFarmToggle = MainTab:CreateToggle({
+    Name = "Enable Autofarm",
+    CurrentValue = autofarmEnabled,
+    Flag = "AutofarmToggle",
+    Callback = function(Value)
+        autofarmEnabled = Value
+        if autofarmEnabled then
+            autofarmStarted()
+        else
+            autofarmStopped()
+        end
+    end
+})
+
+
+local TogglePrestige = MainTab:CreateToggle({
+    Name = "Auto Prestige",
+    CurrentValue = false,
+    Flag = "PrestigeActive",
+    Callback = function(Value)
+        getgenv().PrestigeActive = Value
+    end
+})
+
+local items = {}
+local itemSet = {}
+
+for _, item in pairs(workspace.Purchasable:GetChildren()) do
+    if not itemSet[item.Name] then
+        table.insert(items, item.Name)
+        itemSet[item.Name] = true
+    end
+end
+
+local function purchaseItem(itemName)
+    local item = workspace.Purchasable:FindFirstChild(itemName)
+    if item then
+        local clickDetector = item.ClickDetector
+        if clickDetector then
+            local initialCount = #game.Players.LocalPlayer.Backpack:GetChildren()
+            local newCount
+            repeat
+                fireclickdetector(clickDetector)
+                wait(0.1) -- Adjust the wait time as needed
+                newCount = #game.Players.LocalPlayer.Backpack:GetChildren()
+            until newCount == initialCount
+            print("Purchased max of: " .. tostring(itemName))
+        else
+            print("No ClickDetector found for: " .. tostring(itemName))
+        end
+    else
+        print("Item not found in workspace.Purchasable: " .. tostring(itemName))
+    end
+end
+
+
+
+for _, itemName in ipairs(items) do
+    ItemTab:CreateButton({
+        Name = "Purchase " .. itemName,
+        Callback = function()
+            purchaseItem(itemName)
+        end
+    })
+end
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+
+local itemsFolder = workspace:FindFirstChild("Items")
+local localPlayer = Players.LocalPlayer
+local miningEnabled = false
+
+-- Function to fire a ProximityPrompt
+local function fireproximityprompt2(Obj, Amount, Skip)
+    if Obj.ClassName == "ProximityPrompt" then 
+        Amount = Amount or 1
+        local PromptTime = Obj.HoldDuration
+        if Skip then 
+            Obj.HoldDuration = 0
+        end
+        for i = 1, Amount do 
+            Obj:InputHoldBegin()
+            if not Skip then 
+                wait(Obj.HoldDuration)
+            end
+            Obj:InputHoldEnd()
+        end
+        Obj.HoldDuration = PromptTime
+    else 
+        error("userdata<ProximityPrompt> expected")
+    end
+end
+
+-- Function to move the player to the MiningNode
+local function movePlayer(targetCFrame, callback)
+    local character = localPlayer and localPlayer.Character
+    if character then
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+        if humanoidRootPart then
+            -- Tween player to the target position
+            local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+            local tween = TweenService:Create(humanoidRootPart, tweenInfo, {CFrame = targetCFrame})
+
+            tween:Play()
+            tween.Completed:Connect(function()
+                if callback then callback() end -- Fire ProximityPrompt after reaching
+            end)
+        end
+    end
+end
+
+-- Function to recursively search for "MiningNode" and interact with its ProximityPrompt
+local function findMiningNodes(parent)
+    for _, child in ipairs(parent:GetChildren()) do
+        if child:IsA("Model") and child.Name == "MiningNode" then
+            local primaryPart = child.PrimaryPart -- Ensure it has a PrimaryPart
+            if primaryPart then
+                -- Find the ProximityPrompt inside the MiningNode
+                local prompt = child:FindFirstChildWhichIsA("ProximityPrompt", true)
+                if prompt then
+                    -- Move the player to the MiningNode’s position
+                    movePlayer(primaryPart.CFrame, function()
+                        fireproximityprompt2(prompt, 1, true) -- Fire the ProximityPrompt
+                    end)
+                else
+                    warn("No ProximityPrompt found in: " .. child:GetFullName())
+                end
+            else
+                warn("MiningNode missing PrimaryPart: " .. child:GetFullName())
+            end
+        elseif child:IsA("Model") or child:IsA("Folder") then
+            -- Recursively check children
+            findMiningNodes(child)
+        end
+    end
+end
+
+-- Function to repeatedly check for MiningNodes every 2 seconds
+local function startChecking()
+    while miningEnabled do
+        if itemsFolder then
+            findMiningNodes(itemsFolder)
+        else
+            warn("workspace.Items folder not found!")
+        end
+        wait(2) -- Check every 2 seconds
+    end
+end
+
+-- Toggle to start/stop mining
+MiningTab:CreateToggle({
+    Name = "Enable Mining",
+    CurrentValue = miningEnabled,
+    Flag = "MiningToggle",
+    Callback = function(Value)
+        miningEnabled = Value
+        if miningEnabled then
+            task.spawn(startChecking)
+        end
+    end
+})
+
+SettingsTab:CreateButton({
+    Name = "Refresh Script",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/evilevil123/SO/refs/heads/main/stand2.lua"))()
+    end
+})
+
+SettingsTab:CreateButton({
+    Name = "Rejoin Server",
+    Callback = function()
+        RejoinServer()
+    end
+})
+
+SettingsTab:CreateButton({
+    Name = "Save into autoexec",
+    Callback = function()
+        local Autoexec = game:GetService("HttpService"):GetAsync("https://raw.githubusercontent.com/evilevil123/SO/refs/heads/main/stand2.lua")
+        writefile("autoexec.lua", Autoexec)
+    end
+})
+
+-- Anti-AFK
+local vu = game:GetService("VirtualUser")
+game:GetService("Players").LocalPlayer.Idled:Connect(function()
+    vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    wait(1)
+    vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+end)
+
+function RejoinServer()
+    local TeleportService = game:GetService("TeleportService")
+    local PlaceId = game.PlaceId
+    local JobId = game.JobId
+    local Players = game:GetService("Players")
+
+    if #Players:GetPlayers() <= 1 then
+        Players.LocalPlayer:Kick("\nRejoining...")
+        wait()
+        TeleportService:Teleport(PlaceId, Players.LocalPlayer)
+    else
+        TeleportService:TeleportToPlaceInstance(PlaceId, JobId, Players.LocalPlayer)
+    end
+end
 
 function GolemGorilla()
     for _, obj in pairs(game.Workspace:GetChildren()) do
@@ -188,33 +425,10 @@ local function NewLevel(Level)
     elseif LevelNum >= 60 and LevelNum < 80 then
         getgenv().CurrentMob = "Vampire"
     elseif LevelNum >= 80 and LevelNum <= 100 then
-        getgenv().CurrentMob = "Golem"
-        
+        getgenv().CurrentMob = "Golem"      
     end
 end
-
-
-local CoreGUIPath = game.Players.LocalPlayer.PlayerGui.CoreGUI
-local LevelText = CoreGUIPath.Frame.EXPBAR.TextLabel
-if getgenv().Autofarm then
-    LevelText:GetPropertyChangedSignal("Text"):Connect(function()
-        local Level = string.match(LevelText.Text, "%d+")
-    
-        if tonumber(Level) >= 100 and getgenv().PrestigeActive == true then
-	    getgenv().Autofarm = false
-            game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
-	    loadstring(game:HttpGet('https://raw.githubusercontent.com/evilevil123/SO/refs/heads/main/stand2.lua'))()	
-        end
-    
-        NewLevel(Level)
-    end)
-    AutoAssignStats()
-    GolemGorilla()
-    NewLevel(string.match(LevelText.Text, "%d+"))
-    NewQuest(getgenv().CurrentMob)
-    wait(2)
-    TeleportToNpc()
-else
+function autofarmStopped()
     getgenv().CurrentMob = nil
     getgenv().EnemyHitCount = 0
     EnemiesHit = {}
@@ -223,5 +437,35 @@ else
         AutoLoop:Disconnect()
     end
     workspace.Gravity = 196.2
-    
 end
+
+
+
+function autofarmStarted()
+    
+    AutoAssignStats()
+    GolemGorilla()
+    NewLevel(string.match(getgenv().LevelText.Text, "%d+"))
+    NewQuest(getgenv().CurrentMob)
+    wait(2)
+    TeleportToNpc()
+end
+
+local CoreGUIPath = game.Players.LocalPlayer.PlayerGui.CoreGUI
+getgenv().LevelText = CoreGUIPath.Frame.EXPBAR.TextLabel
+getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
+    local Level = string.match(getgenv().LevelText.Text, "%d+")
+
+    if tonumber(Level) >= 100 and getgenv().PrestigeActive then
+        autofarmStopped()
+        wait(5)
+        game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
+        wait(2)
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/evilevil123/SO/refs/heads/main/stand2.lua'))()
+        
+    end
+    NewLevel(Level)
+    AutoAssignStats()
+    EnsureStandSummoned()
+end)
+
