@@ -133,18 +133,35 @@ local function fireproximityprompt2(Obj, Amount, Skip)
     end
 end
 
+-- Function to enable/disable noclip
+local function setNoclip(enabled)
+    local character = localPlayer and localPlayer.Character
+    if character then
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = not enabled
+            end
+        end
+    end
+end
+
 -- Function to move the player to the MiningNode
 local function movePlayer(targetCFrame, callback)
     local character = localPlayer and localPlayer.Character
     if character then
         local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
         if humanoidRootPart then
+            -- Enable noclip
+            setNoclip(true)
+
             -- Tween player to the target position
             local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
             local tween = TweenService:Create(humanoidRootPart, tweenInfo, {CFrame = targetCFrame})
 
             tween:Play()
             tween.Completed:Connect(function()
+                -- Disable noclip
+                setNoclip(false)
                 if callback then callback() end -- Fire ProximityPrompt after reaching
             end)
         end
@@ -474,6 +491,4 @@ getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
     end
     NewLevel(Level)
     AutoAssignStats()
-    EnsureStandSummoned()
 end)
-
