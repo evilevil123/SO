@@ -487,6 +487,8 @@ getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
         game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
         wait(2)
         loadstring(game:HttpGet('https://raw.githubusercontent.com/evilevil123/SO/refs/heads/main/stand2.lua'))()
+	wait(2)
+	autofarmStarted()
         
     end
     NewLevel(Level)
