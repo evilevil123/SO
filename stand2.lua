@@ -446,6 +446,10 @@ end
 
 
 function autofarmStarted()
+    if getgenv().PrestigeActive == true then
+        game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
+        wait(3)
+    end
     GolemGorilla()
     NewLevel(string.match(getgenv().LevelText.Text, "%d+"))
     NewQuest(getgenv().CurrentMob)
