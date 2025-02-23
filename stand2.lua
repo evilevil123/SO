@@ -463,14 +463,13 @@ getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
     local Level = string.match(getgenv().LevelText.Text, "%d+")
 
     if tonumber(Level) >= 100 and getgenv().PrestigeActive == true then
-        autifarEnabled = false
-        autofarmStopped()
+        AutoFarmToggle:Set(false)
         wait(5)
         game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
         wait(2)
         loadstring(game:HttpGet('https://raw.githubusercontent.com/evilevil123/SO/refs/heads/main/stand2.lua'))()
         wait(5)
-        autofarmEnabled = true
+        AutoFarmToggle:Set(true)
     end
     NewLevel(Level)
     AutoAssignStats()
