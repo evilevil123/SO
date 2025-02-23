@@ -26,7 +26,7 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
-local MainTab = Window:CreateTab("Main v1.11", 4483362458) -- Title, Image
+local MainTab = Window:CreateTab("Main v1.12", 4483362458) -- Title, Image
 local ItemTab = Window:CreateTab("Items", 4483362458) -- Title, Image
 local MiningTab = Window:CreateTab("Mining", 4483362458) -- Title, Image
 local SettingsTab = Window:CreateTab("Settings", 4483362458) -- Title, Image
