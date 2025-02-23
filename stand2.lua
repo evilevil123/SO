@@ -469,6 +469,7 @@ getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
         wait(2)
 	getgenv().CurrentMob = "Thug"
 	NewQuest(getgenv().CurrentMob)
+	TeleportToNpc()
         AutoFarmToggle:Set(true) 
     end
     NewLevel(Level)
