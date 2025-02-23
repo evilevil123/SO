@@ -26,7 +26,7 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
-local MainTab = Window:CreateTab("Main v1.12", 4483362458) -- Title, Image
+local MainTab = Window:CreateTab("Main", 4483362458) -- Title, Image
 local ItemTab = Window:CreateTab("Items", 4483362458) -- Title, Image
 local MiningTab = Window:CreateTab("Mining", 4483362458) -- Title, Image
 local SettingsTab = Window:CreateTab("Settings", 4483362458) -- Title, Image
@@ -414,56 +414,6 @@ local function TeleportToNpc()
     end
 end
 
-local function PrestigeTeleportToNpc()
-    pcall(function()
-        local stand = game.Players.LocalPlayer.Character:FindFirstChild("Stand")
-        if stand and stand.Head.Transparency == 1 then
-            game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Events.SummonStand:InvokeServer()
-        else
-            local standSuit = game.Players.LocalPlayer.Character:FindFirstChild("StandSuit")
-            if standSuit and standSuit.StandHead.Head.Color1.Transparency == 1 then
-                game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Events.SummonStand:InvokeServer()
-            end
-        end
-    end)
-        
-    AutoAssignStats()
-    GolemGorilla()
-    CheckQuestProgress()
-
-    local Enemy = NewEnemy()
-    if Enemy then
-        pcall(function()
-            if game.Players.LocalPlayer.Character and not debounce then
-                workspace.Gravity = 0
-                local TPTweenInfo = TweenInfo.new(0, Enum.EasingStyle.Linear)
-                    
-                local tween = game:GetService("TweenService"):Create(
-                    game.Players.LocalPlayer.Character.HumanoidRootPart,
-                    TPTweenInfo,
-                    { CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(0,-5, 5) }
-                )
-                    
-                tween:Play()
-                game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Events.Barrage:InvokeServer()
-                game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Events.Heavy:InvokeServer()
-                game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Events.Punch:InvokeServer()
-                    
-                tween.Completed:Connect(function()
-                    if not Enemy or not Enemy:FindFirstChild("Humanoid") or (Enemy:FindFirstChild("Humanoid") and Enemy.Humanoid.Health == 0) then
-                        debounce = true
-                        EnemiesKilled[Enemy] = true
-                        AutoAssignStats()
-                        GolemGorilla()
-                        workspace.Gravity = 196.2 -- Reset gravity to default
-                        debounce = false
-                    end
-                end)
-            end
-        end)
-    end
-end
-
 
 local function NewLevel(Level)
     LevelNum = tonumber(Level)
@@ -495,36 +445,16 @@ end
 
 
 
-
 function autofarmStarted()
-    if autofarmEnabled then
-        if string.match(getgenv().LevelText.Text, "%d+") == "100" and getgenv().PrestigeActive == true then
-            game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
-            wait(2)
-        end
-	    GolemGorilla()
-        NewLevel(string.match(getgenv().LevelText.Text, "%d+"))
-        NewQuest(getgenv().CurrentMob)
-        wait(2)
-        TeleportToNpc()
-    else
-        autofarmStopped()
+    if getgenv().PrestigeActive == true then
+        game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
+        wait(3)
     end
-end
-
-function PrestigeAutofarmStart()
-	AutoFarmToggle:Set(false)
-	wait(5)
-	game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
-	wait(2)
-	getgenv().CurrentMob = "Thug"
-	NewQuest(getgenv().CurrentMob)
-	wait(2)
-	PrestigeTeleportToNpc()
-	repeat
-		wait(1)
-	until not debounce
-	AutoFarmToggle:Set(true)
+    GolemGorilla()
+    NewLevel(string.match(getgenv().LevelText.Text, "%d+"))
+    NewQuest(getgenv().CurrentMob)
+    wait(2)
+    TeleportToNpc()
 end
 
 local CoreGUIPath = game.Players.LocalPlayer.PlayerGui.CoreGUI
@@ -533,7 +463,11 @@ getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
     local Level = string.match(getgenv().LevelText.Text, "%d+")
 
     if tonumber(Level) >= 100 and getgenv().PrestigeActive == true then
-        PrestigeAutofarmStart()
+        autofarmStopped()
+        wait(5)
+        game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
+        wait(2)
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/evilevil123/SO/refs/heads/main/stand2.lua'))()   
     end
     NewLevel(Level)
     AutoAssignStats()
