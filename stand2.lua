@@ -466,9 +466,9 @@ getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
         AutoFarmToggle:Set(false)
         wait(5)
         game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
+        wait(2)
 	getgenv().CurrentMob = "Thug"
 	NewQuest(getgenv().CurrentMob)
-        wait(2)
         AutoFarmToggle:Set(true) 
     end
     NewLevel(Level)
