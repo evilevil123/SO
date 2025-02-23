@@ -39,9 +39,10 @@ local AutoFarmToggle = MainTab:CreateToggle({
     Callback = function(Value)
         autofarmEnabled = Value
         if autofarmEnabled then
-            autofarmStarted()
+            InitializeScript()
         else
-            autofarmStopped()
+
+            DeinitializeScript()
         end
     end
 })
@@ -433,7 +434,24 @@ local function NewLevel(Level)
         getgenv().CurrentMob = "Golem"      
     end
 end
-function autofarmStopped()
+
+
+function InitializeScript()
+    if getgenv().PrestigeActive == true then
+        game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
+        wait(3)
+    end
+    GolemGorilla()
+    NewLevel(string.match(getgenv().LevelText.Text, "%d+"))
+    NewQuest(getgenv().CurrentMob)
+    wait(2)
+    TeleportToNpc()
+end
+
+
+
+
+function DeinitializeScript()
     if AutoLoop then
         AutoLoop:Disconnect()
         AutoLoop = nil
@@ -445,17 +463,7 @@ end
 
 
 
-function autofarmStarted()
-    if getgenv().PrestigeActive == true then
-        game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
-        wait(3)
-    end
-    GolemGorilla()
-    NewLevel(string.match(getgenv().LevelText.Text, "%d+"))
-    NewQuest(getgenv().CurrentMob)
-    wait(2)
-    TeleportToNpc()
-end
+
 
 local CoreGUIPath = game.Players.LocalPlayer.PlayerGui.CoreGUI
 getgenv().LevelText = CoreGUIPath.Frame.EXPBAR.TextLabel
