@@ -513,7 +513,7 @@ function PrestigeAutofarmStart()
 	NewQuest(getgenv().CurrentMob)
 	wait(2)
 	PrestigeTeleportToNpc()
-
+end
 
 local CoreGUIPath = game.Players.LocalPlayer.PlayerGui.CoreGUI
 getgenv().LevelText = CoreGUIPath.Frame.EXPBAR.TextLabel
