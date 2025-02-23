@@ -499,7 +499,8 @@ end
 function autofarmStarted()
     if autofarmEnabled then
         if string.match(getgenv().LevelText.Text, "%d+") == "100" and getgenv().PrestigeActive == true then
-            getgenv().PrestigeActive = true
+            game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
+            wait(2)
         end
 	    GolemGorilla()
         NewLevel(string.match(getgenv().LevelText.Text, "%d+"))
