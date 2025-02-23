@@ -523,7 +523,7 @@ getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
     if tonumber(Level) >= 100 and getgenv().PrestigeActive == true then
         AutoFarmToggle:Set(false)
         wait(5)
-        game:GetService("ReplicatedStorage").Events.Pprestige:InvokeServer()
+        game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
         wait(2)
         PrestigeAutofarmStart()
         repeat
