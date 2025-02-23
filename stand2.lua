@@ -497,8 +497,11 @@ end
 
 
 function autofarmStarted()
-    if autofarmEnabled then          
-        GolemGorilla()
+    if autofarmEnabled then
+        if string.match(getgenv().LevelText.Text, "%d+") == "100" and getgenv().PrestigeActive == true then
+            getgenv().PrestigeActive = true
+        end
+	    GolemGorilla()
         NewLevel(string.match(getgenv().LevelText.Text, "%d+"))
         NewQuest(getgenv().CurrentMob)
         wait(2)
@@ -509,10 +512,18 @@ function autofarmStarted()
 end
 
 function PrestigeAutofarmStart()
+	AutoFarmToggle:Set(false)
+	wait(5)
+	game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
+	wait(2)
 	getgenv().CurrentMob = "Thug"
 	NewQuest(getgenv().CurrentMob)
 	wait(2)
 	PrestigeTeleportToNpc()
+	repeat
+		wait(1)
+	until not debounce
+	AutoFarmToggle:Set(true)
 end
 
 local CoreGUIPath = game.Players.LocalPlayer.PlayerGui.CoreGUI
@@ -521,15 +532,7 @@ getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
     local Level = string.match(getgenv().LevelText.Text, "%d+")
 
     if tonumber(Level) >= 100 and getgenv().PrestigeActive == true then
-        AutoFarmToggle:Set(false)
-        wait(5)
-        game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
-        wait(2)
         PrestigeAutofarmStart()
-        repeat
-            wait(1)
-        until not debounce
-        AutoFarmToggle:Set(true) 
     end
     NewLevel(Level)
     AutoAssignStats()
