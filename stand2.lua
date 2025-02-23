@@ -414,6 +414,56 @@ local function TeleportToNpc()
     end
 end
 
+local function PrestigeTeleportToNpc()
+    pcall(function()
+        local stand = game.Players.LocalPlayer.Character:FindFirstChild("Stand")
+        if stand and stand.Head.Transparency == 1 then
+            game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Events.SummonStand:InvokeServer()
+        else
+            local standSuit = game.Players.LocalPlayer.Character:FindFirstChild("StandSuit")
+            if standSuit and standSuit.StandHead.Head.Color1.Transparency == 1 then
+                game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Events.SummonStand:InvokeServer()
+            end
+        end
+    end)
+        
+    AutoAssignStats()
+    GolemGorilla()
+    CheckQuestProgress()
+
+    local Enemy = NewEnemy()
+    if Enemy then
+        pcall(function()
+            if game.Players.LocalPlayer.Character and not debounce then
+                workspace.Gravity = 0
+                local TPTweenInfo = TweenInfo.new(0, Enum.EasingStyle.Linear)
+                    
+                local tween = game:GetService("TweenService"):Create(
+                    game.Players.LocalPlayer.Character.HumanoidRootPart,
+                    TPTweenInfo,
+                    { CFrame = Enemy.HumanoidRootPart.CFrame * CFrame.new(0,-5, 5) }
+                )
+                    
+                tween:Play()
+                game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Events.Barrage:InvokeServer()
+                game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Events.Heavy:InvokeServer()
+                game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Events.Punch:InvokeServer()
+                    
+                tween.Completed:Connect(function()
+                    if not Enemy or not Enemy:FindFirstChild("Humanoid") or (Enemy:FindFirstChild("Humanoid") and Enemy.Humanoid.Health == 0) then
+                        debounce = true
+                        EnemiesKilled[Enemy] = true
+                        AutoAssignStats()
+                        GolemGorilla()
+                        workspace.Gravity = 196.2 -- Reset gravity to default
+                        debounce = false
+                    end
+                end)
+            end
+        end)
+    end
+end
+
 
 local function NewLevel(Level)
     LevelNum = tonumber(Level)
@@ -445,6 +495,7 @@ end
 
 
 
+
 function autofarmStarted()
     if autofarmEnabled then          
         GolemGorilla()
@@ -457,6 +508,13 @@ function autofarmStarted()
     end
 end
 
+function PrestigeAutofarmStart()
+	getgenv().CurrentMob = "Thug"
+	NewQuest(getgenv().CurrentMob)
+	wait(2)
+	PrestigeTeleportToNpc()
+
+
 local CoreGUIPath = game.Players.LocalPlayer.PlayerGui.CoreGUI
 getgenv().LevelText = CoreGUIPath.Frame.EXPBAR.TextLabel
 getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
@@ -465,11 +523,12 @@ getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
     if tonumber(Level) >= 100 and getgenv().PrestigeActive == true then
         AutoFarmToggle:Set(false)
         wait(5)
-        game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
+        game:GetService("ReplicatedStorage").Events.Pprestige:InvokeServer()
         wait(2)
-	getgenv().CurrentMob = "Thug"
-	NewQuest(getgenv().CurrentMob)
-	TeleportToNpc()
+        PrestigeAutofarmStart()
+        repeat
+            wait(1)
+        until not debounce
         AutoFarmToggle:Set(true) 
     end
     NewLevel(Level)
