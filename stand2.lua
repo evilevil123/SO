@@ -471,7 +471,7 @@ getgenv().LevelText:GetPropertyChangedSignal("Text"):Connect(function()
     local Level = string.match(getgenv().LevelText.Text, "%d+")
 
     if tonumber(Level) >= 100 and getgenv().PrestigeActive == true then
-        autofarmStopped()
+        DeinitializeScript()
         wait(5)
         game:GetService("ReplicatedStorage").Events.Prestige:InvokeServer()
         wait(2)
