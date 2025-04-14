@@ -38,6 +38,36 @@ local ItemTab = Window:CreateTab("Items", 4483362458) -- Title, Image
 local MiningTab = Window:CreateTab("Mining", 4483362458) -- Title, Image
 local SettingsTab = Window:CreateTab("Settings", 4483362458) -- Title, Image
 
+local autofarmEnabled = false
+local autofarmStartTime = nil
+local lastSessionTime = nil
+local initialMoney = nil
+local timerLabel = MainTab:CreateLabel("Autofarm Timer: 00:00:00")
+local lastSessionLabel = MainTab:CreateLabel("Last Session: N/A")
+local moneyMadeLabel = MainTab:CreateLabel("Money Made: 0")
+
+local function updateTimer()
+    while autofarmEnabled do
+        if autofarmStartTime then
+            local elapsed = os.time() - autofarmStartTime
+            local hours = math.floor(elapsed / 3600)
+            local minutes = math.floor((elapsed % 3600) / 60)
+            local seconds = elapsed % 60
+            timerLabel:Set("Autofarm Timer: " .. string.format("%02d:%02d:%02d", hours, minutes, seconds))
+        end
+
+        -- Update money made
+        local moneyText = game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Menu.Money.Text
+        local sanitizedMoney = moneyText:gsub("[^%d]", "") -- Remove all non-numeric characters
+        local currentMoney = tonumber(sanitizedMoney) or 0 -- Ensure it's a valid number
+        if initialMoney and currentMoney then
+            local moneyMade = currentMoney - initialMoney
+            moneyMadeLabel:Set("Money Made: " .. tostring(moneyMade))
+        end
+
+        wait(1)
+    end
+end
 
 local AutoFarmToggle = MainTab:CreateToggle({
     Name = "Enable Autofarm",
@@ -46,14 +76,22 @@ local AutoFarmToggle = MainTab:CreateToggle({
     Callback = function(Value)
         autofarmEnabled = Value
         if autofarmEnabled then
-            InitializeScript()
+            autofarmStartTime = os.time()
+            local moneyText = game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Menu.Money.Text
+            local sanitizedMoney = moneyText:gsub("[^%d]", "") -- Remove all non-numeric characters
+            initialMoney = tonumber(sanitizedMoney) or 0 -- Ensure it's a valid number
+            task.spawn(updateTimer) -- Restart the timer loop
+            InitializeScript() -- Restart the autofarm logic
         else
-
-            DeinitializeScript()
+            lastSessionTime = os.date("%Y-%m-%d %H:%M:%S", os.time())
+            lastSessionLabel:Set("Last Session: " .. lastSessionTime)
+            autofarmStartTime = nil
+            timerLabel:Set("Autofarm Timer: 00:00:00")
+            moneyMadeLabel:Set("Money Made: 0")
+            DeinitializeScript() -- Stop the autofarm logic
         end
     end
 })
-
 
 local TogglePrestige = MainTab:CreateToggle({
     Name = "Auto Prestige",
@@ -399,9 +437,9 @@ local function TeleportToNpc()
                     )
                         
                     tween:Play()
-			        game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Events.Barrage:InvokeServer()
-                    game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Events.Heavy:InvokeServer()
-                    game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.Events.Punch:InvokeServer()
+			        game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.StandMoves.Barrage.Fire:InvokeServer()
+                    game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.StandMoves.HeavyPunch.Fire:InvokeServer()
+                    game:GetService("Players").LocalPlayer.PlayerGui.CoreGUI.StandMoves.Punch.Fire:InvokeServer()
                         
 
                     if not Enemy or not Enemy:FindFirstChild("Humanoid") or (Enemy:FindFirstChild("Humanoid") and Enemy.Humanoid.Health == 0) then
@@ -450,9 +488,11 @@ function InitializeScript()
     end
     GolemGorilla()
     NewLevel(string.match(getgenv().LevelText.Text, "%d+"))
+    wait(2)
     NewQuest(getgenv().CurrentMob)
     wait(2)
     TeleportToNpc()
+    
 end
 
 
@@ -466,6 +506,7 @@ function DeinitializeScript()
     debounce = false
     workspace.Gravity = 196.2 -- Reset gravity to default
     getgenv().CurrentMob = nil -- Clear the current mob
+    NewQuest(nil) -- Clear the quest
 end
 
 
